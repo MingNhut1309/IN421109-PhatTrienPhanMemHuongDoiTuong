@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EduHub.Domain\EduHub.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
