@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EduHub.Domain\EduHub.Domain.csproj" />
     <ProjectReference Include="..\EduHub.Application\EduHub.Application.csproj" />
+    <ProjectReference Include="..\EduHub.API\EduHub.API.csproj" />
   </ItemGroup>
 
 </Project>
