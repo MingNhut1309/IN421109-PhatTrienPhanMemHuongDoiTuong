@@ -1,34 +1,48 @@
-var builder = WebApplication.CreateBuilder(args);
+using EduHub.Application.Interfaces;
+using EduHub.Application.Services;
+using EduHub.Infrastructure.Notifications;
+using EduHub.Infrastructure.Repositories;
 
-// Add services to the container.
+namespace EduHub.API;
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+public class Program
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
+        // Add services to the container.
+        builder.Services.AddControllers();
 
-app.Run();
+        // Swagger / OpenAPI
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        // Clean Architecture Dependency Injection
+        builder.Services.AddSingleton<IEventRepository, InMemoryEventRepository>();
+        builder.Services.AddSingleton<INotificationServiceFactory, NotificationServiceFactory>();
+        builder.Services.AddTransient<INotificationService, EmailNotificationService>();
+        builder.Services.AddScoped<EventService>(sp =>
+            new EventService(
+                sp.GetRequiredService<IEventRepository>(),
+                sp.GetRequiredService<INotificationServiceFactory>()));
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "EduHub API v1");
+            c.RoutePrefix = "swagger";
+        });
+
+        app.UseHttpsRedirection();
+
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+    }
 }
